@@ -24,14 +24,14 @@ namespace prs_serverside_2022.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<RequestLine>>> GetRequestsLine()
         {
-            return await _context.RequestsLine.ToListAsync();
+            return await _context.RequestLines.ToListAsync();
         }
 
         // GET: api/RequestLines/5
         [HttpGet("{id}")]
         public async Task<ActionResult<RequestLine>> GetRequestLine(int id)
         {
-            var requestLine = await _context.RequestsLine.FindAsync(id);
+            var requestLine = await _context.RequestLines.FindAsync(id);
 
             if (requestLine == null)
             {
@@ -77,7 +77,7 @@ namespace prs_serverside_2022.Controllers
         [HttpPost]
         public async Task<ActionResult<RequestLine>> PostRequestLine(RequestLine requestLine)
         {
-            _context.RequestsLine.Add(requestLine);
+            _context.RequestLines.Add(requestLine);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetRequestLine", new { id = requestLine.Id }, requestLine);
@@ -87,13 +87,13 @@ namespace prs_serverside_2022.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteRequestLine(int id)
         {
-            var requestLine = await _context.RequestsLine.FindAsync(id);
+            var requestLine = await _context.RequestLines.FindAsync(id);
             if (requestLine == null)
             {
                 return NotFound();
             }
 
-            _context.RequestsLine.Remove(requestLine);
+            _context.RequestLines.Remove(requestLine);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -101,7 +101,7 @@ namespace prs_serverside_2022.Controllers
 
         private bool RequestLineExists(int id)
         {
-            return _context.RequestsLine.Any(e => e.Id == id);
+            return _context.RequestLines.Any(e => e.Id == id);
         }
     }
 }

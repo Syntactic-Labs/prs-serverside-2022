@@ -10,6 +10,6 @@ namespace prs_serverside_2022.Models
         public DbSet<Vendor> Vendors { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<Request> Requests { get; set; }
-        public DbSet<RequestLine> RequestsLine { get; set; }
+        public DbSet<RequestLine> RequestLines { get; set; }
     }
 }
