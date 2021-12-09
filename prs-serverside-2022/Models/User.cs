@@ -9,7 +9,7 @@ namespace prs_serverside_2022.Models
         [Key]
         public int Id { get; set; } = 0;
         [StringLength(30), Required]
-        public string Username { get; set; } = String.Empty;
+        public string Username { get; set; } = string.Empty;
         [StringLength(30), Required]
         public string Password { get; set; } = string.Empty;
         [StringLength(30), Required]
