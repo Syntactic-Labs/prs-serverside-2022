@@ -40,6 +40,20 @@ namespace prs_serverside_2022.Controllers
 
             return user;
         }
+        [HttpGet("{username}/{password}")]
+        public async Task<ActionResult<User>> Login(string username, string password)
+        {
+            var uname = await _context.Users.SingleOrDefaultAsync(x => x.Username == username);
+            if (username == null)
+            {
+                NotFound();
+            }
+            if (uname?.Username != username || uname?.Password != password)
+            {
+                return BadRequest();
+            }
+            return uname;
+        }
 
         // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754

@@ -24,21 +24,29 @@ namespace prs_serverside_2022.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Request>>> GetRequests()
         {
-            return await _context.Requests.ToListAsync();
+            return await _context.Requests
+                                        .Include(r => r.User)
+                                        .ToListAsync();
         }
 
         // GET: api/Requests/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Request>> GetRequest(int id)
         {
-            var request = await _context.Requests.FindAsync(id);
+            var request = await _context.Requests
+                                                .Include(r => r.User)
+                                                .Include(r => r.Requestlines)
+                                                    .ThenInclude(rl => rl.Product)
+                                                .SingleOrDefaultAsync(r => r.Id == id);
 
-            if (request == null)
-            {
-                return NotFound();
-            }
-
-            return request;
+            return (request != null) ? request : NotFound();
+        }
+        [HttpGet("reviews/{userId}")]
+        public async Task<ActionResult<IEnumerable<Request>>> GetReviews(int userId)
+        {
+            return await _context.Requests
+                                        .Where(r => r.Status.Equals("REVIEW") && r.UserId == userId)
+                                        .ToListAsync();
         }
 
         // PUT: api/Requests/5
@@ -68,9 +76,36 @@ namespace prs_serverside_2022.Controllers
                     throw;
                 }
             }
-
             return NoContent();
         }
+        [HttpPut("review/{id}")]
+        public async Task<IActionResult> SetReview(int id, Request request)
+        {
+            var req = await _context.Requests.FindAsync(request.Id);
+            if (req == null) { return NotFound(); }
+            req.Status = (req.Total <= 50) ? "APPROVED" : "REVIEW";
+            req.RejectionReason = null;
+            return await PutRequest(req.Id, req);
+        }
+        [HttpPut("approve/{id}")]
+        public async Task<IActionResult> SetApproved(int id, Request request)
+        {
+            var req = await _context.Requests.FindAsync(request.Id);
+            if (req == null) { return NotFound(); }
+            req.Status = "APPROVED";
+            req.RejectionReason = null;
+            return await PutRequest(req.Id, req);
+        }
+        [HttpPut("reject/{id}")]
+        public async Task<IActionResult> SetRejected(int id, Request request)
+        {
+            var req = await _context.Requests.FindAsync(request.Id);
+            if (req == null) { return NotFound(); }
+            req.Status = "REJECTED";
+            req.RejectionReason = request.RejectionReason;
+            return await PutRequest(req.Id, req);
+        }
+
 
         // POST: api/Requests
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754

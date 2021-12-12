@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace prs_serverside_2022.Models
 {
@@ -24,7 +25,7 @@ namespace prs_serverside_2022.Models
         public bool IsReviewer { get; set; } = false;
         [Required]
         public bool IsAdmin { get; set; } = false;
-
+        [JsonIgnore]
         public virtual ICollection<Request>? Requests { get; set;}
     }
 }

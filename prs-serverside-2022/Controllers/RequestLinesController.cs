@@ -19,6 +19,22 @@ namespace prs_serverside_2022.Controllers
         {
             _context = context;
         }
+        private async Task RecalculateRequestTotal(int requestId)
+        {
+            var request = await _context.Requests.FindAsync(requestId);
+            if (request == null) { throw new Exception("Invalid requestId"); }
+            request.Total = (from rl in _context.RequestLines
+                             join p in _context.Products
+                             on rl.ProductId equals p.Id
+                             where rl.RequestId == requestId
+                             select new
+                             {
+                                 LineTotal = rl.Quantity * p.Price
+                             }).Sum(x => x.LineTotal);
+            request.Status = "EDIT";
+            var reqCtrl = new RequestsController(_context);
+            await reqCtrl.PutRequest(request.Id, request);
+        }
 
         // GET: api/RequestLines
         [HttpGet]
@@ -56,6 +72,7 @@ namespace prs_serverside_2022.Controllers
             try
             {
                 await _context.SaveChangesAsync();
+                await RecalculateRequestTotal(requestLine.RequestId);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -79,6 +96,7 @@ namespace prs_serverside_2022.Controllers
         {
             _context.RequestLines.Add(requestLine);
             await _context.SaveChangesAsync();
+            await RecalculateRequestTotal(requestLine.RequestId);
 
             return CreatedAtAction("GetRequestLine", new { id = requestLine.Id }, requestLine);
         }
@@ -95,7 +113,7 @@ namespace prs_serverside_2022.Controllers
 
             _context.RequestLines.Remove(requestLine);
             await _context.SaveChangesAsync();
-
+            await RecalculateRequestTotal(requestLine.RequestId);
             return NoContent();
         }
 

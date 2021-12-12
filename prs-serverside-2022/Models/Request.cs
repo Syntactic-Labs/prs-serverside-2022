@@ -23,6 +23,6 @@ namespace prs_serverside_2022.Models
 
         public virtual User? User { get; set; } = default;
 
-        public virtual IEnumerable<RequestLine>? Requestline { get; set; }
+        public virtual IEnumerable<RequestLine> Requestlines { get; set; }
     }
 }
