@@ -14,15 +14,15 @@ namespace prs_serverside_2022.Models
         [StringLength (80)]
         public string? RejectionReason { get; set; } = null;
         [Required, StringLength(20)]
-        public string? DeliveryMode { get; set; } = "PickUp";
+        public string DeliveryMode { get; set; } = "PickUp";
         [Required, StringLength(10)]
-        public string? Status { get; set; } = "NEW";
+        public string Status { get; set; } = "NEW";
         [Required, Column(TypeName = "decimal(11,2)")]
         public decimal Total { get; set; } = decimal.Zero;
         public int UserId { get; set; } = 0;
 
         public virtual User? User { get; set; } = default;
 
-        public virtual IEnumerable<RequestLine> Requestlines { get; set; }
+        public virtual IEnumerable<RequestLine>? Requestlines { get; set; } = null;
     }
 }

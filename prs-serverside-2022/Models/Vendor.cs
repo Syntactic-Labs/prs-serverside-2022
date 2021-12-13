@@ -25,7 +25,7 @@ namespace prs_serverside_2022.Models
         [StringLength(255)]
         public string? Email { get; set; } = null;
 
-        public virtual ICollection<Product>? Products { get;}
+        
 
     }
 }

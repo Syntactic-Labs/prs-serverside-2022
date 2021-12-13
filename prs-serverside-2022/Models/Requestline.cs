@@ -7,12 +7,12 @@ namespace prs_serverside_2022.Models
     {
         [Key]
         public int Id { get; set; } = 0;
-        public int Quantity { get; set; } = 0;
+        public int Quantity { get; set; } = 1;
         public int RequestId { get; set; } = 0;
         public int ProductId { get; set; } = 0;
         [JsonIgnore]
-        public virtual Request? Request { get; set; }
-        public virtual Product? Product { get; set; }
+        public virtual Request? Request { get; set; } = null;
+        public virtual Product? Product { get; set; } = null;
 
     }
 }
