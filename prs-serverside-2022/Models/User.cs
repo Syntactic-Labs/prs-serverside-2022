@@ -25,6 +25,8 @@ namespace prs_serverside_2022.Models
         public bool IsReviewer { get; set; } = false;
         [Required]
         public bool IsAdmin { get; set; } = false;
+        [JsonIgnore]
+        public virtual ICollection<Request>? Requests { get; set; }
         
     }
 }

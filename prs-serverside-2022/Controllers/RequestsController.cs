@@ -45,7 +45,8 @@ namespace prs_serverside_2022.Controllers
         public async Task<ActionResult<IEnumerable<Request>>> GetReviews(int userId)
         {
             return await _context.Requests
-                                        .Where(r => r.Status.Equals("REVIEW") && r.UserId == userId)
+                                        .Include(r => r.User)
+                                        .Where(r => r.Status.Equals("REVIEW") && r.UserId != userId)
                                         .ToListAsync();
         }
 
@@ -78,14 +79,14 @@ namespace prs_serverside_2022.Controllers
             }
             return NoContent();
         }
-        [HttpPut("review/{id}")]
-        public async Task<IActionResult> SetReview(int id, Request request)
+        [HttpPut("review")]
+        public async Task<IActionResult> SetReview(Request request)
         {
-            var req = await _context.Requests.FindAsync(request.Id);
-            if (req == null) { return NotFound(); }
-            req.Status = (req.Total <= 50) ? "APPROVED" : "REVIEW";
-            req.RejectionReason = null;
-            return await PutRequest(req.Id, req);
+            request.Status = request.Total <= 50 ? "Approved" : "Review";
+            //_context.Entry(request).State = EntityState.Modified;  Used to alter data with PUT
+            //await _context.SaveChangesAsync();
+            //return Ok();
+            return await PutRequest(request.Id, request);
         }
         [HttpPut("approve/{id}")]
         public async Task<IActionResult> SetApproved(int id, Request request)
