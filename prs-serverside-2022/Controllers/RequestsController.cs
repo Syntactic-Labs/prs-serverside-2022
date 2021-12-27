@@ -35,7 +35,7 @@ namespace prs_serverside_2022.Controllers
         {
             var request = await _context.Requests
                                                 .Include(r => r.User)
-                                                .Include(r => r.Requestlines)
+                                                .Include(r => r.RequestLines)
                                                     .ThenInclude(rl => rl.Product)
                                                 .SingleOrDefaultAsync(r => r.Id == id);
 
