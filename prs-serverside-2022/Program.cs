@@ -1,21 +1,23 @@
+using LoggerService;
 using Microsoft.EntityFrameworkCore;
+using NLog;
 using prs_serverside_2022.Models;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
+var services = builder.Services;
 var AppAccess = "_AppAccess";
-
-builder.Services.AddControllers();
-
 var connStrKey = "AppDbContext";
 
-builder.Services.AddDbContext<AppDbContext>(x =>
+LogManager.LoadConfiguration(string.Concat(Directory.GetCurrentDirectory(), "/nlog.config"));
+services.ConfigureLoggerService();
+
+services.AddControllers();
+services.AddDbContext<AppDbContext>(x =>
 {
     x.UseSqlServer(builder.Configuration.GetConnectionString(connStrKey));
 });
 
-builder.Services.AddCors(x =>
+services.AddCors(x =>
 {
     x.AddPolicy(name: AppAccess,
         builder =>
@@ -26,13 +28,8 @@ builder.Services.AddCors(x =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-
-
 app.UseCors(AppAccess);
-
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();

@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using LoggerService;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using prs_serverside_2022.Models;
+using System.Text.Json;
 
 namespace prs_serverside_2022.Controllers
 {
@@ -14,10 +11,12 @@ namespace prs_serverside_2022.Controllers
     public class ProductsController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly ILoggerManager _logger;
 
-        public ProductsController(AppDbContext context)
+        public ProductsController(AppDbContext context, ILoggerManager logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         // GET: api/Products
@@ -33,15 +32,16 @@ namespace prs_serverside_2022.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Product>> GetProduct(int id)
         {
+            _logger.LogInfo($"Requested Id: {id}");
             var product = await _context.Products
                                                 .Include(p => p.Vendor)
                                                 .SingleOrDefaultAsync(p => p.Id == id);
-
             if (product == null)
             {
                 return NotFound();
             }
 
+            _logger.LogInfo($"Response from Id: {JsonSerializer.Serialize(product)}");
             return product;
         }
 

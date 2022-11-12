@@ -22,7 +22,6 @@ namespace prs_serverside_2022.Models
         public int UserId { get; set; } = 0;
 
         public virtual User? User { get; set; } = default;
-
         public virtual IEnumerable<RequestLine>? RequestLines { get; set; } = null;
     }
 }
