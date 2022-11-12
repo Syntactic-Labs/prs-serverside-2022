@@ -10,6 +10,7 @@ namespace prs_serverside_2022.Controllers
     [ApiController]
     public class ProductsController : ControllerBase
     {
+        private readonly JsonSerializerOptions jOptions = new() { WriteIndented= true };
         private readonly AppDbContext _context;
         private readonly ILoggerManager _logger;
 
@@ -23,9 +24,17 @@ namespace prs_serverside_2022.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
         {
-            return await _context.Products
-                                        .Include(p => p.Vendor)
-                                        .ToListAsync();
+
+            Task<List<Product>> products = _context.Products
+                                                    .Include(p => p.Vendor)
+                                                    .ToListAsync();
+
+            if (products is null)
+            {
+                _logger.LogError("Could not find: <List<Product>>");
+                return NotFound("Fail to connect to DataBase or No data in table");
+            };
+            return await products;
         }
 
         // GET: api/Products/5
@@ -38,10 +47,11 @@ namespace prs_serverside_2022.Controllers
                                                 .SingleOrDefaultAsync(p => p.Id == id);
             if (product == null)
             {
+                _logger.LogError($"Could not find productId: {id}");
                 return NotFound();
             }
 
-            _logger.LogInfo($"Response from Id: {JsonSerializer.Serialize(product)}");
+            _logger.LogInfo($"Response from Id: {JsonSerializer.Serialize(product, jOptions)}");
             return product;
         }
 

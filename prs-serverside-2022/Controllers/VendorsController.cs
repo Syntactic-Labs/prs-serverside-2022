@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using LoggerService;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using prs_serverside_2022.Models;
@@ -14,10 +10,12 @@ namespace prs_serverside_2022.Controllers
     public class VendorsController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly ILoggerManager _logger;
 
-        public VendorsController(AppDbContext context)
+        public VendorsController(AppDbContext context, ILoggerManager logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         // GET: api/Vendors
@@ -33,23 +31,16 @@ namespace prs_serverside_2022.Controllers
         {
             var vendor = await _context.Vendors.FindAsync(id);
 
-            if (vendor == null)
-            {
-                return NotFound();
-            }
+            if (vendor == null) return NotFound();
 
             return vendor;
         }
 
         // PUT: api/Vendors/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutVendor(int id, Vendor vendor)
         {
-            if (id != vendor.Id)
-            {
-                return BadRequest();
-            }
+            if (id != vendor.Id) return BadRequest();
 
             _context.Entry(vendor).State = EntityState.Modified;
 
@@ -59,21 +50,13 @@ namespace prs_serverside_2022.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!VendorExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                if (!VendorExists(id)) return NotFound();
+                else throw;
             }
-
             return NoContent();
         }
 
         // POST: api/Vendors
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<Vendor>> PostVendor(Vendor vendor)
         {
@@ -88,10 +71,7 @@ namespace prs_serverside_2022.Controllers
         public async Task<IActionResult> DeleteVendor(int id)
         {
             var vendor = await _context.Vendors.FindAsync(id);
-            if (vendor == null)
-            {
-                return NotFound();
-            }
+            if (vendor == null) return NotFound();
 
             _context.Vendors.Remove(vendor);
             await _context.SaveChangesAsync();

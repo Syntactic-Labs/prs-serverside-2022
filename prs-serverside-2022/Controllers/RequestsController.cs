@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using LoggerService;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,30 +15,27 @@ namespace prs_serverside_2022.Controllers
     public class RequestsController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly ILoggerManager _logger;
 
-        public RequestsController(AppDbContext context)
+        public RequestsController(AppDbContext context, ILoggerManager logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         // GET: api/Requests
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Request>>> GetRequests()
         {
-            return await _context.Requests
-                                        .Include(r => r.User)
-                                        .ToListAsync();
+            return await _context.Requests.Include(r => r.User).ToListAsync();
         }
 
         // GET: api/Requests/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Request>> GetRequest(int id)
         {
-            var request = await _context.Requests
-                                                .Include(r => r.User)
-                                                .Include(r => r.RequestLines)
-                                                    .ThenInclude(rl => rl.Product)
-                                                .SingleOrDefaultAsync(r => r.Id == id);
+            var request = await _context.Requests.Include(r => r.User).Include(r => r.RequestLines)
+                                                    .ThenInclude(rl => rl.Product).SingleOrDefaultAsync(r => r.Id == id);
 
             return (request != null) ? request : NotFound();
         }
@@ -55,10 +53,7 @@ namespace prs_serverside_2022.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutRequest(int id, Request request)
         {
-            if (id != request.Id)
-            {
-                return BadRequest();
-            }
+            if (id != request.Id) return BadRequest();
 
             _context.Entry(request).State = EntityState.Modified;
 
@@ -68,14 +63,8 @@ namespace prs_serverside_2022.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!RequestExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                if (!RequestExists(id)) return NotFound();
+                else throw;
             }
             return NoContent();
         }
@@ -92,7 +81,7 @@ namespace prs_serverside_2022.Controllers
         public async Task<IActionResult> SetApproved(int id, Request request)
         {
             var req = await _context.Requests.FindAsync(request.Id);
-            if (req == null) { return NotFound(); }
+            if (req is null) return NotFound();
             req.Status = "APPROVED";
             req.RejectionReason = null;
             return await PutRequest(req.Id, req);
@@ -101,7 +90,7 @@ namespace prs_serverside_2022.Controllers
         public async Task<IActionResult> SetRejected(int id, Request request)
         {
             var req = await _context.Requests.FindAsync(request.Id);
-            if (req == null) { return NotFound(); }
+            if (req is null) return NotFound();
             req.Status = "REJECTED";
             req.RejectionReason = request.RejectionReason;
             return await PutRequest(req.Id, req);
@@ -109,7 +98,6 @@ namespace prs_serverside_2022.Controllers
 
 
         // POST: api/Requests
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<Request>> PostRequest(Request request)
         {
@@ -124,10 +112,7 @@ namespace prs_serverside_2022.Controllers
         public async Task<IActionResult> DeleteRequest(int id)
         {
             var request = await _context.Requests.FindAsync(id);
-            if (request == null)
-            {
-                return NotFound();
-            }
+            if (request is null) return NotFound();
 
             _context.Requests.Remove(request);
             await _context.SaveChangesAsync();

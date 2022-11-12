@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using LoggerService;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using prs_serverside_2022.Models;
 
@@ -9,10 +10,12 @@ namespace prs_serverside_2022.Controllers
     public class UsersController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly ILoggerManager _logger;
 
-        public UsersController(AppDbContext context)
+        public UsersController(AppDbContext context, ILoggerManager logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         // GET: api/Users
@@ -28,10 +31,7 @@ namespace prs_serverside_2022.Controllers
         {
             var user = await _context.Users.FindAsync(id);
 
-            if (user == null)
-            {
-                return NotFound();
-            }
+            if (user is null) return NotFound();
 
             return user;
         }
@@ -39,14 +39,10 @@ namespace prs_serverside_2022.Controllers
         public async Task<ActionResult<User>> Login(string username, string password)
         {
             var uname = await _context.Users.SingleOrDefaultAsync(x => x.Username == username);
-            if (username == null)
-            {
-                NotFound();
-            }
-            if (uname?.Username != username || uname?.Password != password)
-            {
-                return BadRequest();
-            }
+
+            if (username is null)NotFound();
+            if (uname?.Username != username || uname?.Password != password) return BadRequest();
+
             return uname;
         }
 
@@ -55,10 +51,7 @@ namespace prs_serverside_2022.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutUser(int id, User user)
         {
-            if (id != user.Id)
-            {
-                return BadRequest();
-            }
+            if (id != user.Id) return BadRequest();
 
             _context.Entry(user).State = EntityState.Modified;
 
@@ -68,16 +61,9 @@ namespace prs_serverside_2022.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!UserExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                if (!UserExists(id)) return NotFound();
+                else throw;
             }
-
             return NoContent();
         }
 
@@ -97,10 +83,7 @@ namespace prs_serverside_2022.Controllers
         public async Task<IActionResult> DeleteUser(int id)
         {
             var user = await _context.Users.FindAsync(id);
-            if (user == null)
-            {
-                return NotFound();
-            }
+            if (user is null) return NotFound();
 
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();

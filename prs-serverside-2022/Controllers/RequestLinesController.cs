@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using LoggerService;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,28 +15,14 @@ namespace prs_serverside_2022.Controllers
     public class RequestLinesController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly ILoggerManager _logger;
 
-        public RequestLinesController(AppDbContext context)
+        public RequestLinesController(AppDbContext context, ILoggerManager logger)
         {
             _context = context;
+            _logger = logger;
         }
-        private async Task RecalculateRequestTotal(int requestId)
-        {
-            var request = await _context.Requests.FindAsync(requestId);
-            if (request == null) { throw new Exception("Invalid requestId"); }
-            request.Total = (from rl in _context.RequestLines
-                             join p in _context.Products
-                             on rl.ProductId equals p.Id
-                             where rl.RequestId == requestId
-                             select new
-                             {
-                                 LineTotal = rl.Quantity * p.Price
-                             }).Sum(x => x.LineTotal);
-            request.Status = "EDIT";
-            var reqCtrl = new RequestsController(_context);
-            await reqCtrl.PutRequest(request.Id, request);
-        }
-
+        
         // GET: api/RequestLines
         [HttpGet]
         public async Task<ActionResult<IEnumerable<RequestLine>>> GetRequestsLine()
@@ -49,23 +36,16 @@ namespace prs_serverside_2022.Controllers
         {
             var requestLine = await _context.RequestLines.FindAsync(id);
 
-            if (requestLine == null)
-            {
-                return NotFound();
-            }
+            if (requestLine is null) return NotFound();
 
             return requestLine;
         }
 
         // PUT: api/RequestLines/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutRequestLine(int id, RequestLine requestLine)
         {
-            if (id != requestLine.Id)
-            {
-                return BadRequest();
-            }
+            if (id != requestLine.Id) return BadRequest();
 
             _context.Entry(requestLine).State = EntityState.Modified;
 
@@ -76,14 +56,8 @@ namespace prs_serverside_2022.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!RequestLineExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                if (!RequestLineExists(id)) return NotFound();
+                else throw;
             }
 
             return NoContent();
@@ -106,15 +80,31 @@ namespace prs_serverside_2022.Controllers
         public async Task<IActionResult> DeleteRequestLine(int id)
         {
             var requestLine = await _context.RequestLines.FindAsync(id);
-            if (requestLine == null)
-            {
-                return NotFound();
-            }
+            if (requestLine is null) return NotFound();
 
             _context.RequestLines.Remove(requestLine);
             await _context.SaveChangesAsync();
             await RecalculateRequestTotal(requestLine.RequestId);
             return NoContent();
+        }
+
+        private async Task RecalculateRequestTotal(int requestId)
+        {
+            var request = await _context.Requests.FindAsync(requestId);
+            if (request is null) throw new ArgumentException("Invalid requestId");
+
+            request.Total = (from rl in _context.RequestLines
+                             join p in _context.Products
+                             on rl.ProductId equals p.Id
+                             where rl.RequestId == requestId
+                             select new
+                             {
+                                 LineTotal = rl.Quantity * p.Price
+                             }).Sum(x => x.LineTotal);
+
+            request.Status = "EDIT";
+            var reqCtrl = new RequestsController(_context, _logger);
+            await reqCtrl.PutRequest(request.Id, request);
         }
 
         private bool RequestLineExists(int id)
