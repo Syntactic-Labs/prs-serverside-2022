@@ -25,16 +25,13 @@ namespace prs_serverside_2022.Controllers
         public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
         {
 
-            Task<List<Product>> products = _context.Products
-                                                    .Include(p => p.Vendor)
-                                                    .ToListAsync();
+            var products = await _context.Products.Include(p => p.Vendor).ToListAsync();
 
-            if (products is null)
-            {
+            if (products is null){
                 _logger.LogError("Could not find: <List<Product>>");
                 return NotFound("Fail to connect to DataBase or No data in table");
             };
-            return await products;
+            return products;
         }
 
         // GET: api/Products/5
@@ -45,8 +42,7 @@ namespace prs_serverside_2022.Controllers
             var product = await _context.Products
                                                 .Include(p => p.Vendor)
                                                 .SingleOrDefaultAsync(p => p.Id == id);
-            if (product == null)
-            {
+            if (product == null){
                 _logger.LogError($"Could not find productId: {id}");
                 return NotFound();
             }
@@ -56,14 +52,10 @@ namespace prs_serverside_2022.Controllers
         }
 
         // PUT: api/Products/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutProduct(int id, Product product)
         {
-            if (id != product.Id)
-            {
-                return BadRequest();
-            }
+            if (id != product.Id) return BadRequest();
 
             _context.Entry(product).State = EntityState.Modified;
 
@@ -73,21 +65,14 @@ namespace prs_serverside_2022.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ProductExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                if (!ProductExists(id))  return NotFound();
+                else throw;
             }
 
             return NoContent();
         }
 
         // POST: api/Products
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<Product>> PostProduct(Product product)
         {
@@ -102,10 +87,7 @@ namespace prs_serverside_2022.Controllers
         public async Task<IActionResult> DeleteProduct(int id)
         {
             var product = await _context.Products.FindAsync(id);
-            if (product == null)
-            {
-                return NotFound();
-            }
+            if (product is null) return NotFound();
 
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
