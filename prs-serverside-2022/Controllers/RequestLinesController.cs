@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using LoggerService;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using prs_serverside_2022.Models;
 
@@ -15,12 +9,10 @@ namespace prs_serverside_2022.Controllers
     public class RequestLinesController : ControllerBase
     {
         private readonly AppDbContext _context;
-        private readonly ILoggerManager _logger;
 
-        public RequestLinesController(AppDbContext context, ILoggerManager logger)
+        public RequestLinesController(AppDbContext context)
         {
             _context = context;
-            _logger = logger;
         }
         
         // GET: api/RequestLines
@@ -103,7 +95,7 @@ namespace prs_serverside_2022.Controllers
                              }).Sum(x => x.LineTotal);
 
             request.Status = "EDIT";
-            var reqCtrl = new RequestsController(_context, _logger);
+            var reqCtrl = new RequestsController(_context);
             await reqCtrl.PutRequest(request.Id, request);
         }
 

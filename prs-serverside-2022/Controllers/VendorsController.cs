@@ -1,5 +1,4 @@
-﻿using LoggerService;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using prs_serverside_2022.Models;
 
@@ -10,12 +9,10 @@ namespace prs_serverside_2022.Controllers
     public class VendorsController : ControllerBase
     {
         private readonly AppDbContext _context;
-        private readonly ILoggerManager _logger;
 
-        public VendorsController(AppDbContext context, ILoggerManager logger)
+        public VendorsController(AppDbContext context)
         {
             _context = context;
-            _logger = logger;
         }
 
         // GET: api/Vendors

@@ -1,5 +1,4 @@
-﻿using LoggerService;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using prs_serverside_2022.Models;
 using System.Text.Json;
@@ -12,9 +11,9 @@ namespace prs_serverside_2022.Controllers
     {
         private readonly JsonSerializerOptions jOptions = new() { WriteIndented= true };
         private readonly AppDbContext _context;
-        private readonly ILoggerManager _logger;
+        private readonly ILogger<ProductsController> _logger;
 
-        public ProductsController(AppDbContext context, ILoggerManager logger)
+        public ProductsController(AppDbContext context, ILogger<ProductsController> logger)
         {
             _context = context;
             _logger = logger;
@@ -28,7 +27,6 @@ namespace prs_serverside_2022.Controllers
             var products = await _context.Products.Include(p => p.Vendor).ToListAsync();
 
             if (products is null){
-                _logger.LogError("Could not find: <List<Product>>");
                 return NotFound("Fail to connect to DataBase or No data in table");
             };
             return products;
@@ -38,16 +36,16 @@ namespace prs_serverside_2022.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Product>> GetProduct(int id)
         {
-            _logger.LogInfo($"Requested Id: {id}");
+            //_logger.LogInfo($"Requested Id: {id}");
             var product = await _context.Products
                                                 .Include(p => p.Vendor)
                                                 .SingleOrDefaultAsync(p => p.Id == id);
             if (product == null){
-                _logger.LogError($"Could not find productId: {id}");
+                //_logger.LogError($"Could not find productId: {id}");
                 return NotFound();
             }
 
-            _logger.LogInfo($"Response from Id: {JsonSerializer.Serialize(product, jOptions)}");
+            _logger.LogInformation($"Response from Id: {JsonSerializer.Serialize(product, jOptions)}");
             return product;
         }
 
